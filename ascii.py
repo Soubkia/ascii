@@ -21,6 +21,16 @@ class Page:
         
         self.pad = curses.newpad(self.size[0], self.size[1])
         self.pad.nodelay(1)
+        self.status = {
+            curses.A_ALTCHARSET: False,
+            curses.A_BLINK: False,
+            curses.A_BOLD: False,
+            curses.A_DIM: False,
+            curses.A_NORMAL: False,
+            curses.A_REVERSE: False,
+            curses.A_STANDOUT: False,
+            curses.A_UNDERLINE: False,
+        }
         
         self.video = cv2.VideoCapture(0)
         self.video.set(3, self.size[1]) # CV_CAP_PROP_FRAME_WIDTH
@@ -38,8 +48,68 @@ class Page:
         ch = self.pad.getch()
         if ch > -1:
             curses.flash()
+            # todo: This is the ugliest way ever to handle this find a way to save some lines of code
+            if ch == ord('a'):
+                if self.status[curses.A_ALTCHARSET]:
+                    self.pad.attroff(curses.A_ALTCHARSET)
+                    self.status[curses.A_ALTCHARSET] = False
+                else:
+                    self.pad.attron(curses.A_ALTCHARSET)
+                    self.status[curses.A_ALTCHARSET] = True
+            if ch == ord('b'):
+                if self.status[curses.A_BOLD]:
+                    self.pad.attroff(curses.A_BOLD)
+                    self.status[curses.A_BOLD] = False
+                else:
+                    self.pad.attron(curses.A_BOLD)
+                    self.status[curses.A_BOLD] = True
+            if ch == ord('d'):
+                if self.status[curses.A_DIM]:
+                    self.pad.attroff(curses.A_DIM)
+                    self.status[curses.A_DIM] = False
+                else:
+                    self.pad.attron(curses.A_DIM)
+                    self.status[curses.A_DIM] = True
+            if ch == ord('l'):
+                if self.status[curses.A_BLINK]:
+                    self.pad.attroff(curses.A_BLINK)
+                    self.status[curses.A_BLINK] = False
+                else:
+                    self.pad.attron(curses.A_BLINK)
+                    self.status[curses.A_BLINK] = True
+            if ch == ord('n'):
+                if self.status[curses.A_NORMAL]:
+                    self.pad.attroff(curses.A_NORMAL)
+                    self.status[curses.A_NORMAL] = False
+                else:
+                    self.pad.attron(curses.A_NORMAL)
+                    self.status[curses.A_NORMAL] = True
+            if ch == ord('r'):
+                if self.status[curses.A_REVERSE]:
+                    self.pad.attroff(curses.A_REVERSE)
+                    self.status[curses.A_REVERSE] = False
+                else:
+                    self.pad.attron(curses.A_REVERSE)
+                    self.status[curses.A_REVERSE] = True
+            if ch == ord('s'):
+                if self.status[curses.A_STANDOUT]:
+                    self.pad.attroff(curses.A_STANDOUT)
+                    self.status[curses.A_STANDOUT] = False
+                else:
+                    self.pad.attron(curses.A_STANDOUT)
+                    self.status[curses.A_STANDOUT] = True
+            if ch == ord('u'):
+                if self.status[curses.A_UNDERLINE]:
+                    self.pad.attroff(curses.A_UNDERLINE)
+                    self.status[curses.A_UNDERLINE] = False
+                else:
+                    self.pad.attron(curses.A_UNDERLINE)
+                    self.status[curses.A_UNDERLINE] = True
+            # Misc
             if ch == ord('q'): 
                 sys.exit()
+            if ch == ord('i'):
+                self.palette = self.palette[::-1]
             if ch == curses.KEY_RESIZE:
                 self.video.set(3, self.size[1]) # CV_CAP_PROP_FRAME_WIDTH
                 self.video.set(4, self.size[0]) # CV_CAP_PROP_FRAME_HEIGHT

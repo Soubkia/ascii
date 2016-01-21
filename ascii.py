@@ -10,7 +10,25 @@ import curses
 import sys
 import traceback
 
+from colored import fg, bg, attr
+import convert
 import cv2
+
+class StatusHandler:
+    def __init__(self):
+        self.status = {
+            # video modes
+            'color': True,
+            # curses modes
+            curses.A_ALTCHARSET: False,
+            curses.A_BLINK: False,
+            curses.A_BOLD: False,
+            curses.A_DIM: False,
+            curses.A_NORMAL: False,
+            curses.A_REVERSE: False,
+            curses.A_STANDOUT: False,
+            curses.A_UNDERLINE: False,
+        }
 
 class Page:
     def __init__(self, screen):
@@ -19,9 +37,13 @@ class Page:
         self.left = 0
         self._size = self.screen.getmaxyx()
         
+        
         self.pad = curses.newpad(self.size[0], self.size[1])
         self.pad.nodelay(1)
         self.status = {
+            # video modes
+            'color': False,
+            # curses modes
             curses.A_ALTCHARSET: False,
             curses.A_BLINK: False,
             curses.A_BOLD: False,
@@ -126,17 +148,25 @@ class Page:
     def loop(self):
         ret, frame = self.video.read()
         # convert to gray scale
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
         for h in range(0, len(frame)):
             for w in range(0, len(frame[h])):
-                pixel = self.palette[int((frame[h][w]*len(self.palette))/(256))]
-                self.pad.insstr(h, w, pixel)
+                if not self.status['color']: # if it's grayscale
+                    pixel = self.palette[int((int(sum(frame[h][w])/3)*len(self.palette))/(256))]
+                    self.pad.insstr(h, w, pixel)
+                else:
+                    pixel = self.palette[int((int(sum(frame[h][w])/3)*len(self.palette))/(256))]
+                    self.pad.insstr(h, w, pixel, curses.color_pair(int(convert.rgb2short('%02x%02x%02x' % (frame[h][w][2], frame[h][w][1], frame[h][w][0]))[0])))
 
         cv2.imshow('frame', frame)
 
 def main():
     screen = curses.initscr()
+    curses.start_color()
+    curses.use_default_colors()
+    for i in range(0, curses.COLORS):
+        curses.init_pair(i, -1, i)
     curses.noecho() # no echo key input
     curses.cbreak() # input with no-enter keyed
     curses.curs_set(0) # hide cursor
